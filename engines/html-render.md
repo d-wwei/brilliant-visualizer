@@ -22,28 +22,58 @@
 
 ## 执行步骤
 
-根据 Agent 可用的浏览器工具选择：
+根据 Agent 可用的浏览器工具选择。所有方式都应使用 **2x 缩放**输出高清图片。
 
 **方式 A: gstack browse (Claude Code)**
 ```bash
+$B viewport 800x600
 $B goto file:///tmp/visualize-render-{timestamp}.html
 $B screenshot "./images/compare-html-20260328-001.png"
 ```
 
-**方式 B: Puppeteer**
+**方式 B: Chrome headless (直接调用)**
+```bash
+# --force-device-scale-factor=2 输出 2x 高清 (1600x1200)
+"$CHROME" --headless=new --disable-gpu \
+  --force-device-scale-factor=2 \
+  --window-size=800,600 \
+  --screenshot="./images/compare-html-20260328-001.png" \
+  "file:///tmp/visualize-render-{timestamp}.html"
+```
+
+**方式 C: Puppeteer**
 ```bash
 npx puppeteer screenshot file:///tmp/visualize-render-{timestamp}.html \
   --output "./images/compare-html-20260328-001.png" \
-  --viewport 800x600
+  --viewport 800x600 \
+  --device-scale-factor 2
 ```
 
-**方式 C: Playwright**
+**方式 D: Playwright**
 ```bash
 npx playwright screenshot file:///tmp/visualize-render-{timestamp}.html \
-  "./images/compare-html-20260328-001.png"
+  "./images/compare-html-20260328-001.png" \
+  --viewport-size 800,600
 ```
+Playwright 代码中设 `deviceScaleFactor: 2`。
 
 Agent 应根据当前环境自动选择可用工具。
+
+---
+
+## 全局 CSS 规则
+
+所有 HTML 可视化文件必须包含以下基础样式，防止滚动条和溢出：
+
+```css
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;  /* 防止滚动条被截进图片 */
+}
+```
+
+viewport 高度应留 20% 余量，避免内容紧贴底边触发滚动条。
 
 ---
 
@@ -59,11 +89,15 @@ Agent 应根据当前环境自动选择可用工具。
 <head>
 <meta charset="utf-8">
 <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: #fff;
     padding: 40px;
-    margin: 0;
   }
   .title {
     font-size: 24px;
@@ -131,6 +165,7 @@ Agent 应根据当前环境自动选择可用工具。
 
 ```html
 <style>
+  html, body { margin: 0; padding: 0; overflow: hidden; }
   .cards {
     display: flex;
     gap: 20px;
@@ -188,6 +223,7 @@ Agent 应根据当前环境自动选择可用工具。
 
 ```html
 <style>
+  html, body { margin: 0; padding: 0; overflow: hidden; }
   .chart {
     padding: 40px;
     background: #fff;
@@ -260,6 +296,7 @@ Agent 应根据当前环境自动选择可用工具。
 
 ```html
 <style>
+  html, body { margin: 0; padding: 0; overflow: hidden; }
   .timeline {
     padding: 40px;
     background: #fff;
@@ -340,16 +377,25 @@ Agent 应根据当前环境自动选择可用工具。
 
 ## 截图参数
 
-默认视口: 800x600 (适合文章配图)。内容宽度大时用 1200x800。
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| viewport 宽度 | 800px | 适合文章配图，宽表格用 1200px |
+| viewport 高度 | 内容高度 + 20% | 留余量防止滚动条 |
+| deviceScaleFactor | **2** | 输出 2x 高清图片，Retina/移动端清晰 |
 
-各工具的视口设置方式：
-- **gstack browse**: `$B viewport 800x600`
-- **Puppeteer**: `--viewport 800x600`
-- **Playwright**: `--viewport-size 800,600`
+2x 缩放意味着 800x600 viewport 输出 1600x1200 的 PNG。文件约 300-650KB，质量提升明显。
+
+各工具设置 2x 的方式：
+- **Chrome headless**: `--force-device-scale-factor=2`
+- **gstack browse**: 默认已 2x
+- **Puppeteer**: `--device-scale-factor 2` 或 `page.setViewport({ deviceScaleFactor: 2 })`
+- **Playwright**: `browser.newContext({ deviceScaleFactor: 2 })`
 
 ## 注意事项
 
 - HTML 必须自包含 (inline CSS，不依赖外部资源)
+- **所有模板必须包含** `html, body { margin: 0; padding: 0; overflow: hidden; }`
 - 中文字体: 使用系统字体栈，不引入 web font
 - 背景色: 白色，适配各种文章背景
 - 宽度: 默认 800px，根据内容调整
+- 截图默认 2x 高清，保证 Retina 屏和移动端不模糊
