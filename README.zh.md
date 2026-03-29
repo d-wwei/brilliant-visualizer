@@ -6,20 +6,24 @@
 
 写好一篇文章只是一半的工作，另一半是给每个章节找到或生成合适的配图。这个 skill 负责后半段：读你的文章，识别哪里需要配图，为每个位置选择最佳生成方式，然后自动生成。
 
-它可以独立使用，也可以作为写作工具链的中间环节，衔接 [great-writer](https://github.com/d-wwei/great-writer)（写作）和 [typeset](https://github.com/d-wwei/typeset)（排版）。
+它可以独立使用，也可以作为写作工具链的中间环节，衔接 [great-writer](https://github.com/d-wwei/great-writer)（写作）和 [typeset](https://github.com/d-wwei/typeset)（排版）。兼容所有支持 Skill 的 AI Agent——Claude Code、Codex、Gemini CLI 等。
 
 ## 快速开始
 
-1. 将 skill 复制到 Claude Code 技能目录：
+1. 将 skill 复制到你的 Agent 技能目录：
 
 ```bash
+# Claude Code
 cp -r brilliant-visualizer ~/.claude/skills/
+
+# Codex / 其他 Agent
+cp -r brilliant-visualizer ~/.agents/skills/
 ```
 
 2. 使用：
 
 ```
-/visualize path/to/article.md
+visualize path/to/article.md
 ```
 
 3. 查看配图方案，确认后自动生成。
@@ -48,7 +52,7 @@ cp -r brilliant-visualizer ~/.claude/skills/
 | **architecture** | 系统架构图、网络拓扑、组件图 | `d2`（推荐）或 `graphviz` |
 | **ai-image** | 概念图、封面图、抽象插画 | OpenAI API / 本地 Flux2 / nanobanana |
 | **stock-photo** | 真实场景、人物、环境 | Unsplash API / Pexels API / 搜索引擎 |
-| **html-render** | 数据对比、指标卡片、柱状图、时间线 | gstack browse（无头浏览器） |
+| **html-render** | 数据对比、指标卡片、柱状图、时间线 | 任意无头浏览器（Puppeteer、Playwright 等） |
 
 引擎按需加载。如果只用到 Mermaid，不会加载 AI 图片模块。
 
@@ -105,7 +109,7 @@ VISUALIZE_MERMAID_MODE=inline
 
 ## 集成
 
-**与 great-writer 集成：** 初稿完成后，great-writer 可调用 `/visualize` 添加配图。
+**与 great-writer 集成：** 初稿完成后，great-writer 可调用 `visualize` 添加配图。
 
 ```
 Research → Draft → [Visualize] → Review → Humanize → Finalize

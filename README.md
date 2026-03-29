@@ -6,20 +6,24 @@ An AI agent skill that analyzes article content and automatically generates matc
 
 Writing a good article is half the job. The other half is finding or creating the right visuals for each section. This skill does the second half: it reads your article, identifies where illustrations would help, picks the best generation method for each, and produces them.
 
-It works as a standalone command or as a pipeline stage between [great-writer](https://github.com/d-wwei/great-writer) (writing) and [typeset](https://github.com/d-wwei/typeset) (formatting).
+It works as a standalone skill or as a pipeline stage between [great-writer](https://github.com/d-wwei/great-writer) (writing) and [typeset](https://github.com/d-wwei/typeset) (formatting). Compatible with any AI agent that supports skills — Claude Code, Codex, Gemini CLI, and others.
 
 ## Quick Start
 
-1. Copy the skill to your Claude Code skills directory:
+1. Copy the skill to your agent's skills directory:
 
 ```bash
+# Claude Code
 cp -r brilliant-visualizer ~/.claude/skills/
+
+# Codex / other agents
+cp -r brilliant-visualizer ~/.agents/skills/
 ```
 
 2. Use it:
 
 ```
-/visualize path/to/article.md
+visualize path/to/article.md
 ```
 
 3. Review the illustration plan, confirm, and let it generate.
@@ -48,7 +52,7 @@ You can edit, remove, or add entries before proceeding.
 | **architecture** | System architecture, network topology, component diagrams | `d2` (preferred) or `graphviz` |
 | **ai-image** | Concept art, cover images, abstract illustrations | OpenAI API / local Flux2 / nanobanana |
 | **stock-photo** | Real-world scenes, people, environments | Unsplash API / Pexels API / web search |
-| **html-render** | Data comparisons, stat cards, bar charts, timelines | gstack browse (headless Chromium) |
+| **html-render** | Data comparisons, stat cards, bar charts, timelines | Any headless browser (Puppeteer, Playwright, etc.) |
 
 Engines are loaded on demand. If you only need Mermaid diagrams, the skill never reads the AI image module.
 
@@ -105,7 +109,7 @@ No API keys? The skill still works — Mermaid and HTML rendering need no keys, 
 
 ## Integration
 
-**With great-writer:** After drafting, great-writer can invoke `/visualize` to add illustrations before the review phase.
+**With great-writer:** After drafting, great-writer can invoke `visualize` to add illustrations before the review phase.
 
 ```
 Research → Draft → [Visualize] → Review → Humanize → Finalize

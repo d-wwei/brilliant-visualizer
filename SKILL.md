@@ -48,12 +48,16 @@ triggers:
 ## 调用方式
 
 ```bash
-/visualize article.md              # 完整流程: 分析 + 生成
-/visualize --analyze-only          # 仅分析，不生成
-/visualize --engine mermaid        # 仅生成 Mermaid 图表
-/visualize --engine ai-image       # 仅生成 AI 图片
-/visualize --engine stock-photo    # 仅搜索图库
+visualize article.md              # 完整流程: 分析 + 生成
+visualize --analyze-only          # 仅分析，不生成
+visualize --engine mermaid        # 仅生成 Mermaid 图表
+visualize --engine ai-image       # 仅生成 AI 图片
+visualize --engine stock-photo    # 仅搜索图库
 ```
+
+不同 Agent 平台的命令前缀：
+- **Claude Code**: `/visualize`
+- **Codex / Gemini CLI / 其他**: 按该平台的 skill 调用方式
 
 被 great-writer 调用时，在 Draft 和 Review 之间自动插入:
 ```
@@ -191,7 +195,7 @@ AI 后端 → 检查环境变量，未配置则跳过该后端。
 architecture: D2 → Graphviz → Mermaid (graph)
 stock-photo:  Unsplash API → Pexels API → Web Search
 ai-image:     本地 Flux2 → gpt-image-1 → DALL-E 3 → nanobanana
-html-render:  gstack browse 截图
+html-render:  无头浏览器截图 (Puppeteer / Playwright / gstack browse)
 mermaid:      mmdc 渲染 → 内联代码块 (无需工具)
 ```
 
@@ -231,7 +235,7 @@ VISUALIZE_MERMAID_MODE=inline
 
 great-writer Draft 完成后，如果文章包含可配图内容，提示:
 
-> "文章初稿已完成。检测到 N 个可配图位置，要调用 /visualize 配图吗？"
+> "文章初稿已完成。检测到 N 个可配图位置，要调用 visualize 配图吗？"
 
 用户确认后自动执行配图流程，完成后继续 Review 阶段。
 

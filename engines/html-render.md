@@ -4,31 +4,46 @@
 
 ## 工具依赖
 
-gstack browse (headless Chromium)。无需额外安装。
+任意无头浏览器。Agent 使用其可用的浏览器工具：
+- **gstack browse** (Claude Code 内置)
+- **Puppeteer** (`npx puppeteer screenshot`)
+- **Playwright** (`npx playwright screenshot`)
+- 或 Agent 平台自带的浏览器能力
 
 ## 工作流程
 
 ```
 1. 生成 HTML + inline CSS 代码
 2. 写入 /tmp/ 临时文件
-3. gstack browse 打开本地文件
+3. 用无头浏览器打开本地文件
 4. 截图保存为 PNG
 5. 删除临时文件
 ```
 
 ## 执行步骤
 
-```bash
-# 1. 生成 HTML 文件 (由 AI 根据文章数据生成)
-# 写入 /tmp/visualize-render-{timestamp}.html
+根据 Agent 可用的浏览器工具选择：
 
-# 2. 用 gstack browse 截图
+**方式 A: gstack browse (Claude Code)**
+```bash
 $B goto file:///tmp/visualize-render-{timestamp}.html
 $B screenshot "./images/compare-html-20260328-001.png"
-
-# 3. 清理
-rm /tmp/visualize-render-{timestamp}.html
 ```
+
+**方式 B: Puppeteer**
+```bash
+npx puppeteer screenshot file:///tmp/visualize-render-{timestamp}.html \
+  --output "./images/compare-html-20260328-001.png" \
+  --viewport 800x600
+```
+
+**方式 C: Playwright**
+```bash
+npx playwright screenshot file:///tmp/visualize-render-{timestamp}.html \
+  "./images/compare-html-20260328-001.png"
+```
+
+Agent 应根据当前环境自动选择可用工具。
 
 ---
 
@@ -325,16 +340,12 @@ rm /tmp/visualize-render-{timestamp}.html
 
 ## 截图参数
 
-```bash
-# 默认视口: 800px 宽 (适合文章配图)
-$B viewport 800x600
+默认视口: 800x600 (适合文章配图)。内容宽度大时用 1200x800。
 
-# 如果内容宽度需要更大
-$B viewport 1200x800
-
-# 截图 (自动裁剪空白)
-$B screenshot "./images/compare-html-20260328-001.png"
-```
+各工具的视口设置方式：
+- **gstack browse**: `$B viewport 800x600`
+- **Puppeteer**: `--viewport 800x600`
+- **Playwright**: `--viewport-size 800,600`
 
 ## 注意事项
 
