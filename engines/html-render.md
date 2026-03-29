@@ -22,20 +22,22 @@
 
 ## 执行步骤
 
-根据 Agent 可用的浏览器工具选择。所有方式都应使用 **2x 缩放**输出高清图片。
+根据 Agent 可用的浏览器工具选择。所有方式都应使用 **3x 缩放**输出高清图片（800px viewport → 2400px 输出）。
 
 **方式 A: gstack browse (Claude Code)**
 ```bash
-$B viewport 800x600
+$B viewport 800x600 deviceScaleFactor=3
 $B goto file:///tmp/visualize-render-{timestamp}.html
-$B screenshot "./images/compare-html-20260328-001.png"
+$B screenshot "./images/compare-html-20260328-001.png" fullPage
 ```
+> 注意: 必须显式设置 `deviceScaleFactor=3`，不要依赖默认值。
 
 **方式 B: Chrome headless (直接调用)**
 ```bash
-# --force-device-scale-factor=2 输出 2x 高清 (1600x1200)
+# --force-device-scale-factor=3 输出 3x 高清 (2400x1800)
 "$CHROME" --headless=new --disable-gpu \
-  --force-device-scale-factor=2 \
+  --force-device-scale-factor=3 \
+  --hide-scrollbars \
   --window-size=800,600 \
   --screenshot="./images/compare-html-20260328-001.png" \
   "file:///tmp/visualize-render-{timestamp}.html"
@@ -46,16 +48,17 @@ $B screenshot "./images/compare-html-20260328-001.png"
 npx puppeteer screenshot file:///tmp/visualize-render-{timestamp}.html \
   --output "./images/compare-html-20260328-001.png" \
   --viewport 800x600 \
-  --device-scale-factor 2
+  --device-scale-factor 3
 ```
 
 **方式 D: Playwright**
 ```bash
 npx playwright screenshot file:///tmp/visualize-render-{timestamp}.html \
   "./images/compare-html-20260328-001.png" \
-  --viewport-size 800,600
+  --viewport-size 800,600 \
+  --full-page
 ```
-Playwright 代码中设 `deviceScaleFactor: 2`。
+Playwright 代码中设 `deviceScaleFactor: 3`。
 
 Agent 应根据当前环境自动选择可用工具。
 
@@ -63,15 +66,32 @@ Agent 应根据当前环境自动选择可用工具。
 
 ## 全局 CSS 规则
 
-所有 HTML 可视化文件必须包含以下基础样式，防止滚动条和溢出：
+所有 HTML 可视化文件**必须**包含以下基础样式。这是硬性约束，不可省略任何一行：
 
 ```css
+/* === 截图防滚动条 — 必须全部包含 === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  scrollbar-width: none !important;           /* Firefox */
+  -ms-overflow-style: none !important;        /* IE/Edge */
+}
+*::-webkit-scrollbar {
+  display: none !important;                   /* Chrome/Safari/Edge */
+  width: 0 !important;
+  height: 0 !important;
+}
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden;  /* 防止滚动条被截进图片 */
+  overflow: hidden !important;
 }
 ```
+
+**为什么需要这么多层？**
+- `overflow: hidden` 只阻止滚动，但浏览器仍可能渲染滚动条轨道
+- `::-webkit-scrollbar { display: none }` 彻底隐藏 Webkit 系滚动条的渲染
+- `scrollbar-width: none` 覆盖 Firefox
+- `!important` 防止浏览器默认样式覆盖
 
 viewport 高度应留 20% 余量，避免内容紧贴底边触发滚动条。
 
@@ -89,11 +109,9 @@ viewport 高度应留 20% 余量，避免内容紧贴底边触发滚动条。
 <head>
 <meta charset="utf-8">
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  }
+  *, *::before, *::after { box-sizing: border-box; scrollbar-width: none !important; -ms-overflow-style: none !important; }
+  *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+  html, body { margin: 0; padding: 0; overflow: hidden !important; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: #fff;
@@ -165,7 +183,9 @@ viewport 高度应留 20% 余量，避免内容紧贴底边触发滚动条。
 
 ```html
 <style>
-  html, body { margin: 0; padding: 0; overflow: hidden; }
+  *, *::before, *::after { box-sizing: border-box; scrollbar-width: none !important; -ms-overflow-style: none !important; }
+  *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+  html, body { margin: 0; padding: 0; overflow: hidden !important; }
   .cards {
     display: flex;
     gap: 20px;
@@ -223,7 +243,9 @@ viewport 高度应留 20% 余量，避免内容紧贴底边触发滚动条。
 
 ```html
 <style>
-  html, body { margin: 0; padding: 0; overflow: hidden; }
+  *, *::before, *::after { box-sizing: border-box; scrollbar-width: none !important; -ms-overflow-style: none !important; }
+  *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+  html, body { margin: 0; padding: 0; overflow: hidden !important; }
   .chart {
     padding: 40px;
     background: #fff;
@@ -296,7 +318,9 @@ viewport 高度应留 20% 余量，避免内容紧贴底边触发滚动条。
 
 ```html
 <style>
-  html, body { margin: 0; padding: 0; overflow: hidden; }
+  *, *::before, *::after { box-sizing: border-box; scrollbar-width: none !important; -ms-overflow-style: none !important; }
+  *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+  html, body { margin: 0; padding: 0; overflow: hidden !important; }
   .timeline {
     padding: 40px;
     background: #fff;
@@ -381,21 +405,22 @@ viewport 高度应留 20% 余量，避免内容紧贴底边触发滚动条。
 |------|--------|------|
 | viewport 宽度 | 800px | 适合文章配图，宽表格用 1200px |
 | viewport 高度 | 内容高度 + 20% | 留余量防止滚动条 |
-| deviceScaleFactor | **2** | 输出 2x 高清图片，Retina/移动端清晰 |
+| deviceScaleFactor | **3** | 输出 3x 高清图片，确保文字锐利清晰 |
 
-2x 缩放意味着 800x600 viewport 输出 1600x1200 的 PNG。文件约 300-650KB，质量提升明显。
+3x 缩放意味着 800x600 viewport 输出 2400x1800 的 PNG。文件约 500KB-1MB，文字和细节极其清晰。
 
-各工具设置 2x 的方式：
-- **Chrome headless**: `--force-device-scale-factor=2`
-- **gstack browse**: 默认已 2x
-- **Puppeteer**: `--device-scale-factor 2` 或 `page.setViewport({ deviceScaleFactor: 2 })`
-- **Playwright**: `browser.newContext({ deviceScaleFactor: 2 })`
+各工具设置 3x 的方式：
+- **Chrome headless**: `--force-device-scale-factor=3 --hide-scrollbars`
+- **gstack browse**: `deviceScaleFactor=3` (必须显式设置，不要依赖默认值)
+- **Puppeteer**: `--device-scale-factor 3` 或 `page.setViewport({ deviceScaleFactor: 3 })`
+- **Playwright**: `browser.newContext({ deviceScaleFactor: 3 })`
 
 ## 注意事项
 
 - HTML 必须自包含 (inline CSS，不依赖外部资源)
-- **所有模板必须包含** `html, body { margin: 0; padding: 0; overflow: hidden; }`
+- **所有模板必须包含完整的防滚动条 CSS 三件套** (见"全局 CSS 规则"部分)，仅 `overflow: hidden` 不够
 - 中文字体: 使用系统字体栈，不引入 web font
 - 背景色: 白色，适配各种文章背景
 - 宽度: 默认 800px，根据内容调整
-- 截图默认 2x 高清，保证 Retina 屏和移动端不模糊
+- 截图默认 3x 高清，保证 Retina 屏和移动端文字锐利清晰
+- Chrome headless 额外加 `--hide-scrollbars` 标志作为双重保险
